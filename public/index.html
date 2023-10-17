@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Google - meet - Idaira</title>
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <!--bootstrap and fontawesome-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!--end bootstrap and fontawesome-->
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/5.9.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/5.9.3/firebase-firestore.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+</head>
+
+<body style="background-color: #2c292f;">
+<!--navbar-->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top" style="background-color: #2c292f;">
+     <a class="navbar-brand" href="#" style="font-family: times, serif; font-style:italic; padding-left: 15px;">TARCE - Idaira</a>
+</nav>
+<!--end navbar-->
+<div class="position-relative p-2 p-md-12 m-md-2 text-center bg-light">
+            <div class="col-md-5 p-lg-5 mx-auto my-5">
+<!-- text intro -->
+<h1 style="font-family: times, serif; font-style:italic">¡Crea y únete a llamadas!</h1>
+<h6 style="font-family: times, serif; font-style:italic"><u>Estas llamadas solo permiten dos usuarios</u></h6>
+<!-- end text intro -->
+
+<!--botones-->
+<div id="buttons">
+    <button class="mdc-button mdc-button--raised" style ="display: none;" id="cameraBtn">
+        <i class="material-icons mdc-button__icon" aria-hidden="true">perm_camera_mic</i>
+        <span class="mdc-button__label">¡Adelante!</span>
+    </button>
+    <button class="mdc-button mdc-button--raised" style ="display: none;" id="createBtn">
+        <i class="material-icons mdc-button__icon" aria-hidden="true">group_add</i>
+        <span class="mdc-button__label">Crear sala</span>
+    </button>
+    <button class="mdc-button mdc-button--raised" style ="display: none;" id="joinBtn">
+        <i class="material-icons mdc-button__icon" aria-hidden="true">group</i>
+        <span class="mdc-button__label">Unirse a una sala</span>
+    </button><br>
+    <button class="mdc-button mdc-button--raised" style ="display: none;"id="hangupBtn">
+        <i class="material-icons mdc-button__icon" aria-hidden="true">close</i>
+        <span class="mdc-button__label">Colgar</span>
+    </button><br>
+
+    <!--ID-->
+    <span id="currentRoom" style="font-family: times, serif; font-style:italic;"></span><br>
+    <button id="currentRoom-copy"style ="display: none;" type="button" onclick="copy()" class="btn btn-secondary">Copiar ID</button><br>
+    <!--end ID-->
+    
+    <!--share audio-->
+     <i id="share-audio" style ="display: none;" class="fas fa-microphone-slash fa-1x text-info mx-2"></i>
+     <i id="stop-share-audio" style="display: none" class="fas fa-microphone fa-1x text-info mx-2"></i>
+    <!--end share audio-->
+    <!--share camera-->
+     <i id="share-camera" style ="display: none;" class="fas fa-video-slash fa-1x text-info mx-2"></i>
+     <i id="stop-share-camera" style="display: none" class="fas fa-video fa-1x text-info mx-2"></i>
+    <!--end share camera-->
+    <!--share screen-->
+     <i id="share-screen" style ="display: none;" class="fas fa-desktop fa-1x text-info mx-2"></i>
+     <i id="stop-share-screen" style="display: none" class="fa-x fa-1x text-info mx-2"></i>
+    <!--end share screen-->
+</div>
+<!--end botones-->
+
+    <!-- videos -->
+    <div class="embed-responsive embed-responsive-4by3">
+    <video id="localVideo" style = "background: black; margin-top: 0.8em;" muted autoplay playsinline ></video></div> 
+    <p style = "padding-bottom: 12px; color:#0000FF;"><b >Tú</b><br></p>
+    <div class="embed-responsive embed-responsive-4by3"><video id="remoteVideo" style = "background: black;" autoplay playsinline></video> </div>
+    <p style="color:#0000FF;"><b>Usuario remoto</b></p>
+    <!-- end videos -->
+
+    <!--desplegable-->
+    <div class="mdc-dialog"
+     id="room-dialog"
+     role="alertdialog"
+     aria-modal="true"
+     aria-labelledby="my-dialog-title"
+     aria-describedby="my-dialog-content">
+    <div class="mdc-dialog__container">
+        <div class="mdc-dialog__surface">
+            <h2 class="mdc-dialog__title" id="my-dialog-title">Unirse a sala</h2>
+            <div class="mdc-dialog__content" id="my-dialog-content">
+                Introduzca el ID de la sala:
+                <div class="mdc-text-field">
+                    <input type="text" id="room-id" class="mdc-text-field__input">
+                    <label class="mdc-floating-label" for="my-text-field"></label>
+                    <div class="mdc-line-ripple"></div>
+                </div>
+            </div>
+            <footer class="mdc-dialog__actions">
+                <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="no">
+                    <span class="mdc-button__label">Cancelar</span>
+                </button>
+                <button id="confirmJoinBtn" type="button" class="mdc-button mdc-dialog__button"
+                        data-mdc-dialog-action="yes">
+                    <span class="mdc-button__label">Unirse</span>
+                </button>
+            </footer>
+        </div>
+      </div>
+     <div class="mdc-dialog__scrim"></div>
+    </div>
+    <!--end desplegable-->
+ </div>
+</div>
+    <!-- footer -->
+     <footer  style="margin: 0 auto; background-color: #2c292f; ">
+        <div class="container">
+            <div class="row ">
+                <div class="col-md-4 text-center text-md-left ">
+                    
+                    <div class="py-0">
+                        <h3 class="my-4 text-white">Sobre<span class="mx-2 font-italic text-warning ">TARCE</span></h3>
+
+                        <p class="text-light mb-4">&copy;2021 TARCE Company</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 text-white text-center text-md-left ">
+                    <div class="py-2 my-4">
+                        <div>
+                            <p class="text-white"> <i class="fa fa-map-marker mx-2 "></i>
+                                   C. Juan de Quesada, 30, 35001 Las Palmas de Gran Canaria, Las Palmas</p>
+                        </div>
+
+                        <div> 
+                            <p><i class="fa fa-phone  mx-2 "></i> +34 928 45 10 00</p>
+                        </div>
+                        <div>
+                            <p><i class="fa fa-envelope  mx-2"></i><a target='_blank' href="mailto:support@TARCE.com">support@TARCE.com</a></p>
+
+                        </div>  
+                    </div>  
+                </div>
+                
+                <div class="col-md-4 text-white my-4 text-center text-md-left ">
+                    <span class=" font-weight-bold ">Sobre la compañía</span>
+                    <p class="text-warning my-2" >TARCE es una compañía formada por estudiantes del Máster Universitario en Ingenierías de la Telecomunicación en la Universidad de las Palmas de Gran Canaria. </p>
+                    <div class="py-2">
+                        <a target='_blank' href="https://www.Facebook.com"><i class="fab fa-facebook fa-2x text-primary mx-3"></i></a>
+                        <a target='_blank' href="https://www.google.com"><i class="fab fa-google-plus fa-2x text-danger mx-3"></i></a>
+                        <a target='_blank' href="https://www.twitter.com"><i class="fab fa-twitter fa-2x text-info mx-3"></i></a>
+                        <a target='_blank' href="https://www.instagram.com"><i class="fab fa-youtube fa-2x text-danger mx-3"></i></a>
+                    </div>
+                </div>
+            </div>  
+        </div>
+    </footer>
+    <!-- end of footer -->
+    
+    <!--scripts-->
+    <script src="app.js"></script>
+    <!--bootstrap-->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <!--end bootstrap-->
+
+</body>
+</html>
